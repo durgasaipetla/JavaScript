@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Calculator</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 100vh; 
+      background: #f4f4f4; 
+    }
+    .calculator {
+      background: rgb(146, 139, 139);
+      padding: 20px;
+      border-radius: 10px;
+      border: 5px solid #ffff;
+      box-shadow: 0px 0px 10px rgb(59, 54, 54);
+    }
+    
+    #display {
+      width: 100%;
+      height: 50px;
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      text-align: right;
+      padding: 5px;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 60px);
+      gap: 10px;
+    }
+    button {
+      height: 50px;
+      font-size: 1.2em;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #eee;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #ddd;
+    }
+    .operator {
+      background: #f7b731;
+      color: white;
+    }
+    .operator:hover {
+      background: #f39c12;
+    }
+    h2 {
+      text-align: center;
+      color: #fff;
+      text-decoration: none;
+    }
+    h2:hover{
+      color: #f7b731;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <h2>Sai's Calculator</h2>
+    <input type="text" id="display" disabled>
+    <div class="buttons">
+      <button>7</button>
+      <button>8</button>
+      <button>9</button>
+      <button class="operator">/</button>
+
+      <button>4</button>
+      <button>5</button>
+      <button>6</button>
+      <button class="operator">*</button>
+
+      <button>1</button>
+      <button>2</button>
+      <button>3</button>
+      <button class="operator">-</button>
+
+      <button>0</button>
+      <button>C</button>
+      <button>=</button>
+      <button class="operator">+</button>
+    </div>
+  </div>
+
+  <script>
+    const display = document.getElementById("display");
+    const buttons = document.querySelectorAll("button");
+
+    let currentInput = "";
+    let operator = "";
+    let firstValue = null;
+
+    buttons.forEach(button => {
+      button.addEventListener("click", () => {
+        const value = button.textContent;
+
+        if (!isNaN(value)) {
+          // If it's a number
+          currentInput += value;
+          display.value = currentInput;
+        } 
+        else if (["+", "-", "*", "/"].includes(value)) {
+          // Operator
+          if (currentInput !== "") {
+            firstValue = parseFloat(currentInput);
+            operator = value;
+            currentInput = "";
+            display.value = firstValue + " " + operator;
+          }
+        } 
+        else if (value === "=") {
+          // Calculate
+          if (operator && firstValue !== null && currentInput !== "") {
+            let secondValue = parseFloat(currentInput);
+            let result;
+            switch (operator) {
+              case "+": result = firstValue + secondValue; break;
+              case "-": result = firstValue - secondValue; break;
+              case "*": result = firstValue * secondValue; break;
+              case "/": result = secondValue !== 0 ? firstValue / secondValue : "Error"; break;
+            }
+            display.value = result;
+            currentInput = "";
+            operator = "";
+            firstValue = result; // To allow continuous calculations
+          }
+        } 
+        else if (value === "C") {
+          // Clear everything
+          currentInput = "";
+          operator = "";
+          firstValue = null;
+          display.value = "0";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
