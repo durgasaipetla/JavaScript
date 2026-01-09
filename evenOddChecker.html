@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Even / Odd Checker</title>
+</head>
+<body>
+  <h2>Even / Odd Checker</h2>
+  <input type="number" id="num" placeholder="Enter an integer" />
+  <button id="checkBtn">Check</button>
+  <p id="result"></p>
+
+  <script>
+    const numEl = document.getElementById("num");
+    const resultEl = document.getElementById("result");
+    document.getElementById("checkBtn").addEventListener("click", () => {
+      const value = Number(numEl.value);
+      if (!Number.isInteger(value)) {
+        resultEl.textContent = "Please enter a whole number.";
+        return;
+      }
+      resultEl.textContent = value % 2 === 0 ? `${value} is Even` : `${value} is Odd`;
+    });
+  </script>
+  
+</body>
+</html>
+
