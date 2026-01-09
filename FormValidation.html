@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Validation App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .form-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 350px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #28a745;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Register</h2>
+    <form id="myForm">
+      <input type="text" id="email" placeholder="Enter Email">
+      <div id="emailError" class="error"></div>
+      
+      <input type="password" id="password" placeholder="Enter Password">
+      <div id="passwordError" class="error"></div>
+      
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <script> 
+    const form = document.getElementById("myForm");
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const emailError = document.getElementById("emailError");
+    const passwordError = document.getElementById("passwordError");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      let isValid = true;
+
+      // Email validation regex 
+      const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+      if (!email.value.match(emailPattern)) {
+        emailError.textContent = "Please enter a valid email address";
+        isValid = false;
+      } else {
+        emailError.textContent = "";
+      }
+
+      // Password validation (min 8 chars, 1 uppercase, 1 number, 1 special char)
+      const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+      if (!password.value.match(passwordPattern)) {
+        passwordError.textContent = 
+          "Password must be 8+ chars, include uppercase, number & special character";
+        isValid = false;
+      } else {
+        passwordError.textContent = "";
+      }
+
+      if (isValid) {
+        alert("Form Submitted Successfully 🎉");
+        form.reset();
+      }
+    });
+  </script>
+</body>
+</html>
