@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Notes App</title>
+  <style>
+    :root{--bg:#f6f7fb;--card:#fff;--accent:#2563eb;--danger:#e53e3e}
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Arial;
+      background:var(--bg);
+      color:#0f1724;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:28px;
+    }
+    .app {
+      width:100%;
+      max-width:980px;
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:20px;
+      align-items:start;
+    }
+
+    /* Sidebar / Form */
+    .panel {
+      background:var(--card);
+      border-radius:12px;
+      padding:16px;
+      box-shadow:0 6px 20px rgba(2,6,23,0.06);
+    }
+    h1{margin:0 0 12px;font-size:20px}
+    label{display:block;margin-top:8px;font-size:13px;color:#334155}
+    input[type="text"], textarea {
+      width:100%;
+      padding:10px;
+      margin-top:6px;
+      border:1px solid #e6eef8;
+      border-radius:8px;
+      font-size:14px;
+      resize:vertical;
+      background:#fbfdff;
+    }
+    textarea {min-height:120px}
+    .controls {display:flex;gap:8px;margin-top:10px}
+    button {
+      padding:8px 12px;
+      border:0;border-radius:8px;
+      cursor:pointer;font-weight:600;
+    }
+    .btn-primary {background:var(--accent);color:white}
+    .btn-ghost {background:transparent;border:1px solid #e6eef8}
+    .btn-danger {background:var(--danger);color:white}
+
+    /* Right column: search + list */
+    .toolbar {
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-bottom:12px;
+    }
+    .search {
+      flex:1;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .search input {flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef8}
+    .notes-grid {
+      display:grid;
+      gap:12px;
+      grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+    }
+    .note {
+      background:linear-gradient(180deg,#fff,#fbfdff);
+      padding:12px;border-radius:10px;border:1px solid #eef2ff;
+      min-height:120px; display:flex;flex-direction:column;gap:8px;
+    }
+    .note-title {font-weight:700}
+    .note-body {flex:1;white-space:pre-wrap;word-wrap:break-word;color:#0f1724}
+    .note-meta {font-size:12px;color:#64748b}
+    .note-actions {display:flex;gap:8px;justify-content:flex-end}
+    .small-btn {padding:6px 8px;font-size:13px;border-radius:8px;border:0;cursor:pointer}
+    .edit {background:#e6f2ff;color:#084298}
+    .del {background:#fff0f0;color:#9b1c1c;border:1px solid #fee2e2}
+    .empty {text-align:center;color:#64748b;padding:30px;border-radius:10px;border:1px dashed #e6eef8}
+    @media (max-width:880px){.app{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Left: form -->
+    <div class="panel">
+      <h1>Notes</h1>
+      <form id="noteForm">
+        <label for="title">Title</label>
+        <input id="title" type="text" placeholder="Note title (optional)" />
+
+        <label for="body">Body</label>
+        <textarea id="body" placeholder="Write your note..."></textarea>
+
+        <div class="controls">
+          <button id="saveBtn" class="btn-primary" type="submit">Save Note</button>
+          <button id="clearBtn" class="btn-ghost" type="button">Clear Form</button>
+          <button id="clearAllBtn" class="btn-danger" type="button">Clear All</button>
+        </div>
+
+        <div style="margin-top:10px;font-size:13px;color:#64748b">
+          <span id="status"></span>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right: list, search -->
+    <div>
+      <div class="toolbar panel" style="display:flex;align-items:center;">
+        <div class="search" style="flex:1">
+          <input id="searchInput" placeholder="Search notes by title or content..." />
+        </div>
+        <div>
+          <button id="newBtn" class="btn-primary" style="height:40px">+ New</button>
+        </div>
+      </div>
+
+      <div id="notesContainer" class="panel">
+        <div id="notesGrid" class="notes-grid"></div>
+        <div id="emptyState" class="empty" style="display:none">No notes yet — create your first note!</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // localStorage key
+    const STORAGE_KEY = "notesApp.notes.v1";
+
+    // DOM refs
+    const noteForm = document.getElementById("noteForm");
+    const titleInput = document.getElementById("title");
+    const bodyInput = document.getElementById("body");
+    const saveBtn = document.getElementById("saveBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+    const newBtn = document.getElementById("newBtn");
+    const searchInput = document.getElementById("searchInput");
+    const notesGrid = document.getElementById("notesGrid");
+    const emptyState = document.getElementById("emptyState");
+    const status = document.getElementById("status");
+
+    // App state
+    let notes = []; // array of {id, title, body, updated}
+    let editId = null; // if not null, we are editing a note
+
+    // Utilities
+    function nowISO(){ return new Date().toISOString(); }
+    function formatDate(iso){
+      const d = new Date(iso);
+      return d.toLocaleString();
+    }
+    function saveToStorage(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(notes)); }
+    function loadFromStorage(){
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        notes = raw ? JSON.parse(raw) : [];
+      } catch(e){ notes = []; }
+    }
+
+    // Render notes list (filtered by search)
+    function renderNotes(filter=""){
+      notesGrid.innerHTML = "";
+      const q = filter.trim().toLowerCase();
+      const filtered = notes
+        .filter(n => !q || (n.title + " " + n.body).toLowerCase().includes(q))
+        .sort((a,b) => b.updated.localeCompare(a.updated)); // newest first
+
+      if (filtered.length === 0) {
+        emptyState.style.display = "block";
+      } else {
+        emptyState.style.display = "none";
+      }
+
+      for (const note of filtered){
+        const card = document.createElement("div");
+        card.className = "note";
+        card.dataset.id = note.id;
+
+        const t = document.createElement("div");
+        t.className = "note-title";
+        t.textContent = note.title || "(untitled)";
+
+        const body = document.createElement("div");
+        body.className = "note-body";
+        body.textContent = note.body || "";
+
+        const meta = document.createElement("div");
+        meta.className = "note-meta";
+        meta.textContent = `Last updated: ${formatDate(note.updated)}`;
+
+        const actions = document.createElement("div");
+        actions.className = "note-actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.className = "small-btn edit";
+        editBtn.textContent = "Edit";
+        editBtn.title = "Edit note";
+        editBtn.addEventListener("click", () => loadNoteIntoForm(note.id));
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "small-btn del";
+        delBtn.textContent = "Delete";
+        delBtn.title = "Delete note";
+        delBtn.addEventListener("click", () => deleteNote(note.id));
+
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+
+        card.appendChild(t);
+        card.appendChild(body);
+        card.appendChild(meta);
+        card.appendChild(actions);
+
+        notesGrid.appendChild(card);
+      }
+    }
+
+    // Create or update note
+    function saveNote(e){
+      e && e.preventDefault();
+
+      const title = titleInput.value.trim();
+      const body = bodyInput.value.trim();
+
+      if (!title && !body) {
+        status.textContent = "Cannot save an empty note.";
+        status.style.color = "#b91c1c";
+        return;
+      }
+
+      if (editId) {
+        // update
+        const idx = notes.findIndex(n => n.id === editId);
+        if (idx !== -1) {
+          notes[idx].title = title;
+          notes[idx].body = body;
+          notes[idx].updated = nowISO();
+          status.textContent = "Note updated.";
+          status.style.color = "#16a34a";
+        }
+      } else {
+        // create
+        const note = { id: String(Date.now()) + Math.random().toString(36).slice(2,8), title, body, updated: nowISO() };
+        notes.push(note);
+        status.textContent = "Note saved.";
+        status.style.color = "#16a34a";
+      }
+
+      saveToStorage();
+      renderNotes(searchInput.value);
+      resetForm();
+      // brief flash
+      setTimeout(()=> status.textContent = "", 1800);
+    }
+
+    // Load a note into the form for editing
+    function loadNoteIntoForm(id){
+      const note = notes.find(n => n.id === id);
+      if (!note) return;
+      editId = id;
+      titleInput.value = note.title;
+      bodyInput.value = note.body;
+      saveBtn.textContent = "Update Note";
+      status.textContent = "Editing note...";
+      status.style.color = "#0ea5e9";
+    }
+
+    // Delete a note (with confirmation)
+    function deleteNote(id){
+      if (!confirm("Delete this note? This cannot be undone.")) return;
+      notes = notes.filter(n => n.id !== id);
+      saveToStorage();
+      renderNotes(searchInput.value);
+      status.textContent = "Note deleted.";
+      status.style.color = "#b91c1c";
+      setTimeout(()=> status.textContent = "", 1400);
+    }
+
+    // Clear all notes
+    function clearAllNotes(){
+      if (!confirm("Clear ALL notes? This will remove everything permanently.")) return;
+      notes = [];
+      saveToStorage();
+      renderNotes();
+      status.textContent = "All notes cleared.";
+      status.style.color = "#b91c1c";
+      setTimeout(()=> status.textContent = "", 1400);
+    }
+
+    // Reset the form to create mode
+    function resetForm(){
+      editId = null;
+      noteForm.reset();
+      saveBtn.textContent = "Save Note";
+      status.textContent = "";
+    }
+
+    // Wire up events
+    noteForm.addEventListener("submit", saveNote);
+    clearBtn.addEventListener("click", resetForm);
+    clearAllBtn.addEventListener("click", clearAllNotes);
+    newBtn.addEventListener("click", () => { resetForm(); titleInput.focus(); });
+    searchInput.addEventListener("input", (e) => renderNotes(e.target.value));
+
+    // Init
+    (function init(){
+      loadFromStorage();
+      renderNotes();
+    })();
+  </script>
+</body>
+</html>
