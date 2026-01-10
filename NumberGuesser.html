@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guess the Number</title>
+</head>
+<body>
+  <h2>Guess the Number (1–100)</h2>
+  <input type="number" id="guess" min="1" max="100" />
+  <button id="submit">Guess</button>
+  <button id="reset" disabled>Reset</button>
+  <p id="feedback"></p>
+  <p id="attempts">Attempts: 0</p>
+
+  <script>
+    let secret = Math.floor(Math.random() * 100) + 1;
+    let tries = 0;
+    const input = document.getElementById("guess");
+    const feedback = document.getElementById("feedback");
+    const attempts = document.getElementById("attempts");
+    const submit = document.getElementById("submit");
+    const reset = document.getElementById("reset");
+
+    function endGame(message) {
+      feedback.textContent = message + ` The number was ${secret}.`;
+      input.disabled = true;
+      submit.disabled = true;
+      reset.disabled = false;
+    }
+
+    submit.addEventListener("click", () => {
+      const g = Number(input.value);
+      if (!g || g < 1 || g > 100) {
+        feedback.textContent = "Enter a number between 1 and 100.";
+        return;
+      }
+      tries++;
+      attempts.textContent = `Attempts: ${tries}`;
+
+      if (g === secret) return endGame("🎉 Correct!");
+      if (tries >= 5) return endGame("❌ Out of tries!");
+      feedback.textContent = g < secret ? "Number is low ⬇️" : "Number is high ⬆️";
+      input.select();
+    });
+
+    reset.addEventListener("click", () => {
+      secret = Math.floor(Math.random() * 100) + 1;
+      tries = 0;
+      attempts.textContent = "Attempts: 0";
+      feedback.textContent = "";
+      input.value = "";
+      input.disabled = false;
+      submit.disabled = false;
+      reset.disabled = true;
+      input.focus();
+    });
+  </script>
+</body>
+</html>
