@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rock Paper Scissors Game</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: #f4f4f4;
+      }
+      h1 {
+        font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+          "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+        color: #ffffff;
+        background-color: #081b31;
+        height: 5rem;
+        line-height: 5rem;
+      }
+      .choice {
+        height: 165px;
+        width: 165px;
+        border-radius: 50%;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      }
+      img {
+        height: 150px;
+        width: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+      }
+      .choices {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 3rem;
+        margin-top: 1rem;
+      }
+      .choice:hover {
+        cursor: pointer;
+        background-color: #081b31;
+        
+      }
+      .score-board {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        /* margin-top: 1rem;  */
+        gap: 5rem;
+      }
+      #user-score,
+      #comp-score {
+        font-size: 3rem;
+      }
+
+      #restartBtn {
+        margin-top: 20px;
+        display: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 6px;
+        background: #2196f3;
+        color: white;
+        cursor: pointer;
+      }
+      #restartBtn:hover {
+        background: #0b7dda;
+      }
+      #history {
+        margin-top: 1rem;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      #history h2 {
+        margin-bottom: 10px;
+        color: #333;
+      }
+      #historyList {
+        list-style: none;
+        padding: 0;
+        max-height: 200px;
+        overflow-y: auto;
+        text-align: left;
+      }
+      #historyList li {
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+        font-size: 16px;
+        border-radius: 4px;
+      }
+      #historyList li:last-child {
+        border-bottom: none;
+      }
+      .player-win {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .computer-win {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .draw {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+      #winnerBanner {
+        display: none;
+        margin-top: 25px;
+        padding: 15px;
+        font-size: 22px;
+        font-weight: bold;
+        border-radius: 10px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .banner-player {
+        background-color: #28a745;
+        color: white;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+      }
+      .banner-computer {
+        background-color: #dc3545;
+        color: white;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+      }
+      .msg-container{
+          margin-top: 2rem;
+
+      }
+      #msg{ 
+        color: white;
+        background-color: black;
+        font-size: 2rem;
+        display: inline;
+        padding: 1rem;
+        border-radius: 1rem;
+
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Rock Paper Scissors (Best of 5)</h1>
+
+    <div class="choices">
+      <div class="choice" id="rock"><img src="images/rock.png" /></div>
+    <div class="choice" id="paper"><img src="images/paper.png" /></div>
+      <div class="choice" id="scissors"><img src="images/scissors.png" /></div>
+    </div>
+
+    <div class="score-board">
+      <div class="score">
+        <p id="user-score">0</p>
+        <p>You</p>
+      </div>
+      <div class="score">
+        <p id="comp-score">0</p>
+        <p>Computer</p>
+      </div>
+    </div>
+
+    <div id="history">
+      <h2>Match History 📜</h2>
+      <ul id="historyList"></ul>
+    </div>
+ 
+    <div id="winnerBanner"></div>
+     <button id="restartBtn" onclick="restartGame()">🔄 Restart Game</button>
+
+    <!-- 🎉 Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+
+
+    <script>
+      let userScore = 0;
+      let computerScore = 0;
+      let gameOver = false;
+      let round = 1;
+
+      const choices = document.querySelectorAll(".choice");
+      const userScorePara = document.querySelector("#user-score");
+     const compScorePara = document.querySelector("#comp-score");
+
+      choices.forEach((choice) => {
+        choice.addEventListener("click", () => {
+          const userChoice = choice.getAttribute("id");
+          // console.log("Choice was clicked ", userChoice); // eg:  these 3 of rock,paper,scissors any one is printed
+          playGame(userChoice);
+        });
+      });
+
+
+      const genComputerChoice = () => {
+        const  options = ["rock", "paper", "scissors"];
+        return options[Math.floor(Math.random() * 3)];
+  
+      };
+
+      const drawGame = () =>{
+        console.log("It's draw both choose sameone");
+      }
+
+      function playGame(userChoice) {
+
+        console.log("user choice = ", userChoice);
+        const computerChoice = genComputerChoice();
+        console.log("Computer choice = ", computerChoice);
+
+
+        if (gameOver) 
+          return;
+
+          // Generate Computer Choices
+        let msg = "";
+        let roundWinner = "";
+
+        if (userChoice === computerChoice) {
+          drawGame();
+          roundWinner = "Draw";
+        }
+       
+        else if (
+          (userChoice === "rock" && computerChoice === "scissors") ||
+          (userChoice === "paper" && computerChoice === "rock") ||
+          (userChoice === "scissors" && computerChoice === "paper")
+        ) {
+          userScore++;
+          userScorePara.innerText = userScore;
+          roundWinner = "Player";
+
+        } else {
+          computerScore++;
+          compScorePara.innerText = computerScore;
+          roundWinner = "Computer";
+        }
+  
+        const historyList = document.getElementById("historyList");
+        const li = document.createElement("li");
+        li.textContent = `Round ${round}: Player chose ${userChoice}, Computer chose ${computerChoice} → Winner: ${roundWinner}`;
+        if (roundWinner === "Player") li.classList.add("player-win");
+        else if (roundWinner === "Computer") li.classList.add("computer-win");
+        else li.classList.add("draw");
+
+        historyList.appendChild(li);
+        round++;
+
+        if (userScore === 5 || computerScore === 5) {
+          gameOver = true;
+          const banner = document.getElementById("winnerBanner");
+          if (userScore > computerScore) {
+            banner.textContent = "🎉 YOU WON THE MATCH! 🏆";
+            banner.className = "banner-player";
+            banner.style.display = "block";
+
+            // 🎊 Launch confetti
+            launchConfetti();
+          } else {
+            banner.textContent = "😢 COMPUTER WON THE MATCH!";
+            banner.className = "banner-computer";
+            banner.style.display = "block";
+          }
+          document.getElementById("restartBtn").style.display = "inline-block";
+        }
+      }
+
+
+      function launchConfetti() {
+        var duration = 3 * 1000;
+        var end = Date.now() + duration;
+
+        (function frame() {
+          confetti({
+            particleCount: 7,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+          });
+          confetti({
+            particleCount: 7,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+          });
+
+          if (Date.now() < end) {
+            requestAnimationFrame(frame);
+          }
+        })();
+      }
+
+      function restartGame() {
+        userScore = 0;
+        computerScore = 0;
+        round = 1;
+        gameOver = false;
+        document.querySelector("#user-score").innerHTML ="";
+        document.querySelector("#comp-score").innerHTML ="";
+
+        document.getElementById("restartBtn").style.display = "none";
+        document.getElementById("historyList").innerHTML = "";
+        document.getElementById("winnerBanner").style.display = "none";
+      }
+    </script>
+  </body>
+</html>
