@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Speed Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    #quote {
+      font-size: 18px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      max-width: 700px;
+      margin: 20px auto;
+      text-align: left;
+      line-height: 1.6;
+    }
+    .correct {
+      color: green;
+    }
+    .wrong {
+      color: red;
+    }
+    textarea {
+      width: 90%;
+      height: 100px;
+      margin-top: 15px;
+      font-size: 16px;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+    }
+    textarea:focus {
+      border-color: #4caf50;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0b7dda;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⌨️ Typing Speed Test</h1>
+  <p>Type the text below. Words turn <span style="color:green">green</span> if correct and <span style="color:red">red</span> if wrong.</p>
+
+  <div id="quote"></div>
+  <textarea id="typedText" placeholder="Start typing here..." disabled></textarea><br>
+  <button id="startBtn">Start</button>
+  <button id="resetBtn" disabled>Reset</button>
+
+  <div id="result">⏱️ Time: 0s | 📝 WPM: 0 | ✅ Accuracy: 0%</div>
+
+  <script>
+    const quotes = [
+      "The quick brown fox jumps over the lazy dog.",
+      "JavaScript makes web pages dynamic and interactive.",
+      "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+      "Coding is not just code, it is a way to solve problems.",
+      "Practice makes perfect, so keep typing and improving every day."
+    ];
+
+    const quoteElement = document.getElementById("quote");
+    const typedText = document.getElementById("typedText");
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const result = document.getElementById("result");
+
+    let startTime, timerInterval, currentQuote, quoteWords;
+
+    function getRandomQuote() {
+      return quotes[Math.floor(Math.random() * quotes.length)];
+    }
+
+    function startTest() {
+      currentQuote = getRandomQuote();
+      quoteWords = currentQuote.split(" ");
+      renderQuote();
+      typedText.value = "";
+      result.textContent = "⏱️ Time: 0s | 📝 WPM: 0 | ✅ Accuracy: 0%";
+      startTime = new Date().getTime();
+      typedText.disabled = false;
+      typedText.focus();
+      startBtn.disabled = true;
+      resetBtn.disabled = false;
+
+      timerInterval = setInterval(updateStats, 1000);
+    }
+
+    function renderQuote(typedWords = []) {
+      quoteElement.innerHTML = "";
+      quoteWords.forEach((word, index) => {
+        let span = document.createElement("span");
+        span.textContent = word + " ";
+
+        if (typedWords[index] != null) {
+          if (typedWords[index] === word) {
+            span.classList.add("correct");
+          } else {
+            span.classList.add("wrong");
+          }
+        }
+
+        quoteElement.appendChild(span);
+      });
+    }
+
+    function updateStats() {
+      let currentTime = new Date().getTime();
+      let totalTime = (currentTime - startTime) / 1000;
+
+      let typed = typedText.value.trim();
+      let typedWords = typed.split(/\s+/);
+
+      // Re-render quote with highlights
+      renderQuote(typedWords);
+
+      if (typed.length === 0) {
+        result.textContent = `⏱️ Time: ${totalTime.toFixed(1)}s | 📝 WPM: 0 | ✅ Accuracy: 0%`;
+        return;
+      }
+
+      let words = typedWords.length;
+      let wpm = Math.round((words / totalTime) * 60);
+
+      let correctWords = 0;
+      for (let i = 0; i < typedWords.length; i++) {
+        if (typedWords[i] === quoteWords[i]) {
+          correctWords++;
+        }
+      }
+      let accuracy = Math.round((correctWords / quoteWords.length) * 100);
+
+      result.textContent = `⏱️ Time: ${totalTime.toFixed(1)}s | 📝 WPM: ${wpm} | ✅ Accuracy: ${accuracy}%`;
+    }
+
+    function resetTest() {
+      clearInterval(timerInterval);
+      typedText.disabled = true;
+      startBtn.disabled = false;
+      resetBtn.disabled = true;
+      quoteElement.textContent = "";
+      typedText.value = "";
+      result.textContent = "⏱️ Time: 0s | 📝 WPM: 0 | ✅ Accuracy: 0%";
+    }
+
+    startBtn.addEventListener("click", startTest);
+    resetBtn.addEventListener("click", resetTest);
+    typedText.addEventListener("input", updateStats);
+  </script>
+
+</body>
+</html>
+
