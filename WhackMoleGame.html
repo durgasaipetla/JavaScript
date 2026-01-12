@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whack-a-Mole Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .hole {
+      width: 100px;
+      height: 100px;
+      background: #795548;
+      border-radius: 10px;
+      position: relative;
+      cursor: pointer;
+    }
+    .mole {
+      width: 70px;
+      height: 70px;
+      background: url("https://i.ibb.co/1XG3Qfq/mole.png") no-repeat center;
+      background-size: contain;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+    }
+    #score {
+      font-size: 20px;
+      margin-top: 15px;
+    }
+    #startBtn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #4caf50;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
+    #startBtn:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐹 Whack-a-Mole!</h1>
+  <p>Click the mole as fast as you can!</p>
+  <button id="startBtn">Start Game</button>
+  <div id="score">Score: 0</div>
+
+  <div class="grid">
+    <div class="hole"><div class="mole"></div></div>
+    <div class="hole"><div class="mole"></div></div>
+    <div class="hole"><div class="mole"></div></div>
+    <div class="hole"><div class="mole"></div></div>
+    <div class="hole"><div class="mole"></div></div>
+    <div class="hole"><div class="mole"></div></div>
+    <div class="hole"><div class="mole"></div></div>
+    <div class="hole"><div class="mole"></div></div>
+    <div class="hole"><div class="mole"></div></div>
+  </div>
+
+  <script>
+    const holes = document.querySelectorAll(".hole");
+    const moles = document.querySelectorAll(".mole");
+    const scoreDisplay = document.getElementById("score");
+    const startBtn = document.getElementById("startBtn");
+
+    let score = 0;
+    let currentMole;
+    let gameInterval;
+    let moleTimer;
+
+    function randomMole() {
+      // hide all moles
+      moles.forEach(mole => mole.style.display = "none");
+
+      // choose random hole
+      let randomIndex = Math.floor(Math.random() * holes.length);
+      currentMole = moles[randomIndex];
+      currentMole.style.display = "block";
+
+
+      // hide mole after some time
+      moleTimer = setTimeout(() => {
+        currentMole.style.display = "none";
+      }, 800);
+    }
+   
+    function startGame() {
+      score = 0;
+      scoreDisplay.textContent = "Score: 0";
+      startBtn.disabled = true;
+
+      gameInterval = setInterval(randomMole, 1000);
+
+      // stop game after 30s
+      setTimeout(() => {
+        clearInterval(gameInterval);
+        clearTimeout(moleTimer);
+        alert("⏰ Time's up! Final Score: " + score);
+        startBtn.disabled = false;
+      }, 30000);
+    }
+
+    moles.forEach(mole => {
+      mole.addEventListener("click", () => {
+        if (mole === currentMole) {
+          score++;
+          scoreDisplay.textContent = "Score: " + score;
+          mole.style.display = "none"; // hide after hit
+        }
+      });
+    });
+
+    startBtn.addEventListener("click", startGame);
+  </script>
+
+</body>
+</html>
